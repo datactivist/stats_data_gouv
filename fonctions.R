@@ -74,3 +74,34 @@ getPageUrls <- function(idSite = 1,
     }), .id = "date") %>% 
     mutate(date = lubridate::ymd(date))
 }
+
+
+## focus sur les téléchargements
+## attention difficile d'avoir plus d'une centaine de jours d'un coup, sinon l'API plante
+
+getDownloads <- function(idSite = 1,
+                         period = "day",
+                         date = "last100",
+                         url = "http://stats.data.gouv.fr/index.php?module=API") {
+  request <- GET(url = url, 
+                 query = list(
+                   method = "Actions.getDownloads",
+                   idSite = idSite,
+                   period = period,
+                   date = date,
+                   expanded = 1,
+                   flat = 1,
+                   format = "json"))
+  content(request) %>% 
+    map_df(~ map_df(., function(x) {
+      data_frame(label = x$label,
+                 nb_visits = x$nb_visits,
+                 entry_nb_visits = ifelse(!is.null(x[["entry_nb_visits"]]),
+                                          as.integer(x[["entry_nb_visits"]]),
+                                          0),
+                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
+                                         as.integer(x[["exit_nb_visits"]]),
+                                         0))
+    }), .id = "date") %>% 
+    mutate(date = lubridate::ymd(date))
+}
