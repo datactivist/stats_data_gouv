@@ -135,3 +135,33 @@ getOutlinks <- function(idSite = 1,
     }), .id = "date") %>% 
     mutate(date = lubridate::ymd(date))
 }
+
+## mots-clés de recherche
+
+getSiteSearchKeywords <- function(idSite = 1,
+                                  period = "day",
+                                  date = "last30",
+                                  url = "http://stats.data.gouv.fr/index.php?module=API") {
+  request <- GET(url = url, 
+                 query = list(
+                   method = "Actions.getSiteSearchKeywords",
+                   idSite = idSite,
+                   period = period,
+                   date = date,
+                   filter_limit = -1,
+                   format = "json"))
+  content(request) %>% 
+    map_df(~ map_df(., function(x) {
+      data_frame(label = x$label,
+                 nb_visits = x$nb_visits,
+                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
+                                         as.integer(x[["exit_nb_visits"]]),
+                                         0),
+                 nb_pages_per_search = x$nb_pages_per_search,
+                 bounce_rate = x$bounce_rate,
+                 exit_rate = x$exit_rate)
+    }), .id = "date") %>% 
+      mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double()) %>%
+      mutate(exit_rate = stringr::str_replace(exit_rate, "%", "") %>% as.double()) %>%
+      mutate(date = lubridate::ymd(date))
+  
