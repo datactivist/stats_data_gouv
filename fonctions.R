@@ -60,6 +60,7 @@ getPageUrls <- function(idSite = 1,
                    period = period,
                    date = date,
                    language = "fr",
+                   filter_limit = -1,
                    format = "json"))
   content(request) %>% 
     map_df(~ map_df(., function(x) {
@@ -91,6 +92,7 @@ getDownloads <- function(idSite = 1,
                    date = date,
                    expanded = 1,
                    flat = 1,
+                   filter_limit = -1,
                    format = "json"))
   content(request) %>% 
     map_df(~ map_df(., function(x) {
@@ -99,6 +101,33 @@ getDownloads <- function(idSite = 1,
                  entry_nb_visits = ifelse(!is.null(x[["entry_nb_visits"]]),
                                           as.integer(x[["entry_nb_visits"]]),
                                           0),
+                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
+                                         as.integer(x[["exit_nb_visits"]]),
+                                         0))
+    }), .id = "date") %>% 
+    mutate(date = lubridate::ymd(date))
+}
+
+## liens sortants - dont téléchargements sur un autre site
+
+getOutlinks <- function(idSite = 1,
+                        period = "day",
+                        date = "last100",
+                        url = "http://stats.data.gouv.fr/index.php?module=API") {
+  request <- GET(url = url, 
+                 query = list(
+                   method = "Actions.getOutlinks",
+                   idSite = idSite,
+                   period = period,
+                   date = date,
+                   expanded = 1,
+                   flat = 1,
+                   filter_limit = -1,
+                   format = "json"))
+  content(request) %>% 
+    map_df(~ map_df(., function(x) {
+      data_frame(label = x$label,
+                 nb_visits = x$nb_visits,
                  exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
                                          as.integer(x[["exit_nb_visits"]]),
                                          0))
