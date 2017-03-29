@@ -109,10 +109,11 @@ getDownloads <- function(idSite = 1,
 }
 
 ## liens sortants - dont téléchargements sur un autre site
+## attention à ne pas requêter des périodes de temps trop importantes
 
 getOutlinks <- function(idSite = 1,
                         period = "day",
-                        date = "last100",
+                        date = "last30",
                         url = "http://stats.data.gouv.fr/index.php?module=API") {
   request <- GET(url = url, 
                  query = list(
