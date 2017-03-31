@@ -1,0 +1,29 @@
+---
+title: "Longe traine de data.gouv.fr"
+output: 
+  html_notebook:
+    self_contained: false
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+## Le cas de mars 2017
+
+```{r}
+library(tidyverse)
+library(hrbrthemes)
+urls <- read_csv("./data/data.gouv.fr/20170301_20170331_parurls.csv")
+urls_mars %>% 
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  filter(!stringr::str_detect(label, "Autres")) %>% 
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  ggplot(aes(x = rank, y = nb_visits)) + 
+  geom_line() +
+  theme_ipsum() +
+  labs(title = "La longue traîne des jeux de données de data.gouv.fr", 
+       x = "Rang",
+       y = "nombre de vues")
+
+```
+
