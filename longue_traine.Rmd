@@ -80,3 +80,47 @@ urls_mois %>%
   DT::datatable()
 ```
 
+## Part du nombre de vues générée par les blockbusters
+
+```{r}
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  mutate(url = stringr::str_replace(label, "fr/datasets/", "")) %>% 
+  mutate(url = stringr::str_replace(url, "/index", "")) %>% 
+  group_by(url) %>% 
+  summarise(nb_visits = round(mean(nb_visits, na.rm = TRUE), digits = 0)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  mutate(groupe = if_else(rank < 21, "gros", "petit", NA_character_)) %>% 
+  group_by(groupe) %>% 
+  summarise(N = sum(nb_visits)) %>% 
+  ungroup() %>% 
+  mutate(p = N / sum(N) * 100)
+
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  mutate(url = stringr::str_replace(label, "fr/datasets/", "")) %>% 
+  mutate(url = stringr::str_replace(url, "/index", "")) %>% 
+  group_by(url) %>% 
+  summarise(nb_visits = round(mean(nb_visits, na.rm = TRUE), digits = 0)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  mutate(groupe = if_else(rank < 51, "gros", "petit", NA_character_)) %>% 
+  group_by(groupe) %>% 
+  summarise(N = sum(nb_visits)) %>% 
+  ungroup() %>% 
+  mutate(p = N / sum(N) * 100)
+
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  mutate(url = stringr::str_replace(label, "fr/datasets/", "")) %>% 
+  mutate(url = stringr::str_replace(url, "/index", "")) %>% 
+  group_by(url) %>% 
+  summarise(nb_visits = round(mean(nb_visits, na.rm = TRUE), digits = 0)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  mutate(groupe = if_else(rank < 101, "gros", "petit", NA_character_)) %>% 
+  group_by(groupe) %>% 
+  summarise(N = sum(nb_visits)) %>% 
+  ungroup() %>% 
+  mutate(p = N / sum(N) * 100)
+
+```
+
