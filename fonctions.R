@@ -166,6 +166,7 @@ getSiteSearchKeywords <- function(idSite = 1,
       mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double()) %>%
       mutate(exit_rate = stringr::str_replace(exit_rate, "%", "") %>% as.double()) %>%
       mutate(date = lubridate::ymd(date))
+}
   
   ## mots-clés de recherche (referrers)
   
@@ -214,3 +215,4 @@ getProvider <- function(idSite = 1,
     }), .id = "date") %>% 
     mutate(date = lubridate::ymd(date))
 }
+

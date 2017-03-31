@@ -9,7 +9,9 @@ library(purrr)
 library(tidyjson)
 library(tidyverse)
 library(lubridate)
+source("./fonctions.R")
 ```
+
 ```{r}
 url <- "http://stats.data.gouv.fr/index.php?module=API"
 request <- GET(url = url, 
@@ -58,26 +60,6 @@ write_excel_csv(dataTroisAns, path = "./data/data.gouv.fr/20140331_20170329_parj
 ```
 
 ```{r}
-visitsSegmented <- function(idSite = 1,
-                            period = "day",
-                            date = "last365",
-                            segment = "city==Marseille",
-                            url = "http://stats.data.gouv.fr/index.php?module=API") {
-  request <- GET(url = url, 
-                 query = list(
-                   method = "VisitsSummary.get",
-                   idSite = idSite,
-                   period = period,
-                   date = date,
-                   language = "fr",
-                   segment = segment,
-                   format = "json"))
-  content(request) %>% 
-    map_df(~ map_df(., ~ .), .id = "date") %>% 
-    mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double()) %>% 
-    mutate(date = lubridate::ymd(date))
-  
-}
 
 dataTroisAnsDownloads <- visitsSegmented(period = "day", date = paste0("last", 365*3),
                 segment = "actionType==downloads")
@@ -85,33 +67,6 @@ write_excel_csv(dataTroisAnsDownloads, path = "./data/data.gouv.fr/20160926_2017
 ```
 
 ```{r}
-getPageUrls <- function(idSite = 1,
-                        period = "day",
-                        date = "last365",
-                        url = "http://stats.data.gouv.fr/index.php?module=API") {
-  request <- GET(url = url, 
-                 query = list(
-                   method = "Actions.getPageUrls",
-                   idSite = idSite,
-                   period = period,
-                   date = date,
-                   filter_limit = -1,
-                   expanded = 1,
-                   flat = 1,
-                   format = "json"))
-  content(request) %>% 
-    map_df(~ map_df(., function(x) {
-      data_frame(label = x$label,
-                 nb_visits = x$nb_visits,
-                 entry_nb_visits = ifelse(!is.null(x[["entry_nb_visits"]]),
-                                           as.integer(x[["entry_nb_visits"]]),
-                                           0),
-                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
-                                         as.integer(x[["exit_nb_visits"]]),
-                                         0))
-    }), .id = "date") %>% 
-    mutate(date = lubridate::ymd(date))
-}
 
 urls <- map_df(0:38, ~ getPageUrls(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
 
@@ -120,34 +75,6 @@ write_excel_csv(urls, "./data/data.gouv.fr/20140101_20170331_parjour_parurl.csv"
 ```
 
 ```{r}
-getDownloads <- function(idSite = 1,
-                         period = "day",
-                         date = "last100",
-                         url = "http://stats.data.gouv.fr/index.php?module=API") {
-  request <- GET(url = url, 
-                 query = list(
-                   method = "Actions.getDownloads",
-                   idSite = idSite,
-                   period = period,
-                   date = date,
-                   expanded = 1,
-                   flat = 1,
-                   filter_limit = -1,
-                   format = "json"))
-  content(request) %>% 
-    map_df(~ map_df(., function(x) {
-      data_frame(label = x$label,
-                 nb_visits = x$nb_visits,
-                 entry_nb_visits = ifelse(!is.null(x[["entry_nb_visits"]]),
-                                          as.integer(x[["entry_nb_visits"]]),
-                                          0),
-                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
-                                         as.integer(x[["exit_nb_visits"]]),
-                                         0))
-    }), .id = "date") %>% 
-    mutate(date = lubridate::ymd(date))
-}
-
 downloads100jours <- getDownloads()
 downloadsavant <- getDownloads(date = "2016-09-01,2016-12-20")
 downloadsencoreavant <- getDownloads(date = "2016-06-01,2016-08-31")
@@ -165,97 +92,32 @@ write_excel_csv(downloads, "./data/data.gouv.fr/20140101_20170329_parjour_downlo
 ```
 
 ```{r}
-getOutlinks <- function(idSite = 1,
-                        period = "day",
-                        date = "last30",
-                        url = "http://stats.data.gouv.fr/index.php?module=API") {
-  request <- GET(url = url, 
-                 query = list(
-                   method = "Actions.getOutlinks",
-                   idSite = idSite,
-                   period = period,
-                   date = date,
-                   expanded = 1,
-                   flat = 1,
-                   filter_limit = -1,
-                   format = "json"))
-  content(request) %>% 
-    map_df(~ map_df(., function(x) {
-      data_frame(label = x$label,
-                 nb_visits = x$nb_visits,
-                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
-                                         as.integer(x[["exit_nb_visits"]]),
-                                         0))
-    }), .id = "date") %>% 
-    mutate(date = lubridate::ymd(date))
-}
-
-
-
 outlinks <- map_df(0:26, ~ getOutlinks(date = paste0(ymd(20150101) + months(.), ",", ymd(20150101) + months(. + 1) - days(1))))
 
 write_excel_csv(outlinks, "./data/data.gouv.fr/20150101_20170329_parjour_outlinks_urls.csv")
 ```
 
 ```{r}
-getSiteSearchKeywords <- function(idSite = 1,
-                                  period = "day",
-                                  date = "last30",
-                                  url = "http://stats.data.gouv.fr/index.php?module=API") {
-  request <- GET(url = url, 
-                 query = list(
-                   method = "Actions.getSiteSearchKeywords",
-                   idSite = idSite,
-                   period = period,
-                   date = date,
-                   filter_limit = -1,
-                   format = "json"))
-  content(request) %>% 
-    map_df(~ map_df(., function(x) {
-      data_frame(label = x$label,
-                 nb_visits = x$nb_visits,
-                 exit_nb_visits = ifelse(!is.null(x[["exit_nb_visits"]]),
-                                         as.integer(x[["exit_nb_visits"]]),
-                                         0),
-                 nb_pages_per_search = x$nb_pages_per_search,
-                 bounce_rate = x$bounce_rate,
-                 exit_rate = x$exit_rate)
-    }), .id = "date") %>% 
-      mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double()) %>%
-      mutate(exit_rate = stringr::str_replace(exit_rate, "%", "") %>% as.double()) %>%
-      mutate(date = lubridate::ymd(date))
-}
-  
+
 keywords <- map_df(0:38, ~ getSiteSearchKeywords(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
 
 write_excel_csv(keywords, "./data/data.gouv.fr/20140101_20170329_parjour_keywords_keywords.csv")
 ```
 
-```{r}
-getReferrersSearchKeywords <- function(idSite = 1,
-                                    period = "day",
-                                    date = "last30",
-                                    url = "http://stats.data.gouv.fr/index.php?module=API") {
-    request <- GET(url = url, 
-                   query = list(
-                     method = "Referrers.getKeywords",
-                     idSite = idSite,
-                     period = period,
-                     date = date,
-                     expanded = 1,
-                     flat = 1,
-                     filter_limit = -1,
-                     format = "json"))
-    content(request) %>% 
-      map_df(~ map_df(., function(x) {
-        data_frame(label = x$label,
-                   nb_visits = x$nb_visits)
-      }), .id = "date") %>% 
-      mutate(date = lubridate::ymd(date))
-}
 
+
+```{r}
 referrers_keywords <- map_df(0:38, ~ getReferrersSearchKeywords(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
 
 write_excel_csv(referrers_keywords, "./data/data.gouv.fr/20140101_20170329_parjour_referrers_keywords.csv")
+```
+
+## providers
+
+```{r}
+providers <- map_df(0:38, ~ getProvider(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
+
+write_excel_csv(providers, "./data/data.gouv.fr/20140101_20170331_parjour_providers.csv")
+
 ```
 
