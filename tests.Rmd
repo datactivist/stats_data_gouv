@@ -68,10 +68,15 @@ write_excel_csv(dataTroisAnsDownloads, path = "./data/data.gouv.fr/20160926_2017
 
 ```{r}
 
-urls <- map_df(0:38, ~ getPageUrls(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
+## attention, ne pas demander trop de données d'un coup... dix jours par dix jours ça devrait aller ?
+
+urls <- map_df(seq(0, 1190, 10), ~ getPageUrls(date = paste0(ymd(20140101) + days(.), ",", ymd(20140101) + days(. + 9))))
 
 
-write_excel_csv(urls, "./data/data.gouv.fr/20140101_20170331_parjour_parurl.csv")
+#write_excel_csv(urls, "./data/data.gouv.fr/20140101_20170331_parjour_parurl.csv")
+
+# trop de données ! 
+urls_mois <- getPageUrls(period = "month", date = "last48")
 ```
 
 ```{r}
