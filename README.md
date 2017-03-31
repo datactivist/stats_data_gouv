@@ -8,3 +8,4 @@ Pad de documentation du groupe 1, usages internes des données : https://frama.l
 Pad de documentation du groupe 2, journalisme et actualités :  https://frama.link/table2od
 
 Pad de documentation du groupe 3, longue traine : www.frama.link/odp
+Quelques résultats du groupe 3 : www.datactivi.st/stats_data_gouv/cyclesdevie.nb.html et www.datactivi.st/stats_data_gouv/longue_traine.html
