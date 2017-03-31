@@ -5,12 +5,13 @@ editor_options:
   chunk_output_type: inline
 ---
 
-Sélectionnons quelques jeux de données, qu'on va par exemple tirer au sort dans les URLs ayant eu plus d'un certain nombre de visites sur la période considérée.
+Sélectionnons quelques jeux de données (100), qu'on va par exemple tirer au sort dans les URLs (en pondérant par l'inverse du nombre de visites). Regardons leur cycle de vie, en normalisation par l'audience moyenne sur leur cycle de vie.
 
-```{r}
+```{r, fig.width=10, out.width="800px"}
 library(tidyverse)
 library(stringr)
 library(hrbrthemes)
+library(dygraphs)
 
 
 # chargement des données
@@ -46,6 +47,23 @@ df %>%
   ungroup() %>% 
   ggplot(aes(x = jour, y = visites, group = label)) +
   geom_line(alpha = 0.1) +
-  theme_ipsum()
+  theme_ipsum() +
+  labs(title = "Des cycles de vie très différenciés",
+       x = "Jours après publication",
+       y = "Écart au nombre moyen de visites")
+
+df %>% 
+  filter(label %in% urls) %>% 
+  group_by(label) %>% 
+  arrange(date) %>% 
+  mutate(jour = row_number()) %>% 
+  mutate(visites = nb_visits - mean(nb_visits)) %>% 
+  ungroup() %>% 
+  select(jour, visites, label) %>% 
+  spread(label, visites) %>% 
+  dygraph() %>% 
+  dyHighlight(highlightCircleSize = 5, 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE)
 ```
 
