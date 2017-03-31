@@ -8,6 +8,7 @@ library(httr)
 library(purrr)
 library(tidyjson)
 library(tidyverse)
+library(lubridate)
 ```
 ```{r}
 url <- "http://stats.data.gouv.fr/index.php?module=API"
@@ -94,8 +95,9 @@ getPageUrls <- function(idSite = 1,
                    idSite = idSite,
                    period = period,
                    date = date,
-                   language = "fr",
                    filter_limit = -1,
+                   expanded = 1,
+                   flat = 1,
                    format = "json"))
   content(request) %>% 
     map_df(~ map_df(., function(x) {
@@ -111,9 +113,10 @@ getPageUrls <- function(idSite = 1,
     mutate(date = lubridate::ymd(date))
 }
 
-urls <- getPageUrls(date = paste0("last", 365*3))
+urls <- map_df(0:38, ~ getPageUrls(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
 
-write_excel_csv(urls, "./data/data.gouv.fr/20140331_20170329_parjour_parurl.csv")
+
+write_excel_csv(urls, "./data/data.gouv.fr/20140101_20170331_parjour_parurl.csv")
 ```
 
 ```{r}

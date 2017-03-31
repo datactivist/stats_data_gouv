@@ -60,6 +60,8 @@ getPageUrls <- function(idSite = 1,
                    period = period,
                    date = date,
                    language = "fr",
+                   expanded = 1,
+                   flat = 1,
                    filter_limit = -1,
                    format = "json"))
   content(request) %>% 
@@ -187,4 +189,28 @@ getReferrersSearchKeywords <- function(idSite = 1,
                    nb_visits = x$nb_visits)
       }), .id = "date") %>% 
       mutate(date = lubridate::ymd(date))
+}
+
+
+## providers
+
+getProvider <- function(idSite = 1,
+                                       period = "day",
+                                       date = "last30",
+                                       url = "http://stats.data.gouv.fr/index.php?module=API") {
+  request <- GET(url = url, 
+                 query = list(
+                   method = "Provider.getProvider",
+                   idSite = idSite,
+                   period = period,
+                   date = date,
+                   filter_limit = -1,
+                   format = "json"))
+  content(request) %>% 
+    map_df(~ map_df(., function(x) {
+      data_frame(label = x$label,
+                 nb_uniq_visitors = x$nb_uniq_visitors,
+                 nb_visits = x$nb_visits)
+    }), .id = "date") %>% 
+    mutate(date = lubridate::ymd(date))
 }
