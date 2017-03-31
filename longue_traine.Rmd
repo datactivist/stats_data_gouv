@@ -1,19 +1,18 @@
 ---
-title: "Longe traine de data.gouv.fr"
+title: "La longue traine de data.gouv.fr"
 output: 
-  html_notebook:
+  html_document:
     self_contained: false
-editor_options: 
-  chunk_output_type: inline
 ---
+
 
 
 ## Le cas de mars 2017
 
-```{r}
+```{r, echo=FALSE, fig.width=10, fig.height=7}
 library(tidyverse)
 library(hrbrthemes)
-urls <- read_csv("./data/data.gouv.fr/20170301_20170331_parurls.csv")
+urls_mars <- read_csv("./data/data.gouv.fr/20170301_20170331_parurls.csv")
 urls_mars %>% 
   filter(stringr::str_detect(label, "datasets")) %>% 
   filter(!stringr::str_detect(label, "Autres")) %>% 
@@ -25,5 +24,59 @@ urls_mars %>%
        x = "Rang",
        y = "nombre de vues")
 
+```
+
+## sur une plus longue durée ?
+
+```{r, echo=FALSE, fig.width=10, fig.height=7}
+urls_mois <- read_csv("./data/data.gouv.fr/20140101_20170331_parmois_parurl.csv")
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  filter(!stringr::str_detect(label, "Autres")) %>% 
+  filter(nb_visits > 10) %>% 
+  group_by(label) %>% 
+  summarise(nb_visits = mean(nb_visits, na.rm = TRUE)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  ggplot(aes(x = rank, y = nb_visits)) +
+  geom_line() +
+  theme_ipsum() +
+  labs(title = "La longue traîne des jeux de données de data.gouv.fr",
+       subtitle = "De janvier 2014 à mars 2017, nombre moyen de visites par mois depuis la publication",
+       x = "Rang",
+       y = "nombre de vues")
+
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  filter(!stringr::str_detect(label, "Autres")) %>% 
+  filter(nb_visits > 10) %>% 
+  group_by(label) %>% 
+  summarise(nb_visits = mean(nb_visits, na.rm = TRUE)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  filter(rank < 175) %>% 
+  ggplot(aes(x = rank, y = nb_visits)) +
+  geom_line() +
+  theme_ipsum() +
+  labs(title = "Le début de la longue traîne des jeux de données de data.gouv.fr",
+       subtitle = "De janvier 2014 à mars 2017, nombre moyen de visites par mois depuis la publication",
+       x = "Rang",
+       y = "nombre de vues")
+
+```
+
+## Les blockbusters
+
+```{r}
+urls_mois %>%
+  filter(stringr::str_detect(label, "datasets")) %>% 
+  filter(!stringr::str_detect(label, "Autres")) %>% 
+  filter(nb_visits > 10) %>% 
+  mutate(url = stringr::str_replace(label, "fr/datasets/", "")) %>% 
+  mutate(url = stringr::str_replace(url, "/index", "")) %>% 
+  group_by(url) %>% 
+  summarise(nb_visits = round(mean(nb_visits, na.rm = TRUE), digits = 0)) %>%
+  mutate(rank = dense_rank(desc(nb_visits))) %>% 
+  filter(rank < 500) %>% 
+  arrange(desc(nb_visits)) %>% 
+  DT::datatable()
 ```
 
