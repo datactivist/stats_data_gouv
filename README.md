@@ -1,5 +1,5 @@
 # stats_data_gouv
-Outils et données pour la journée "Open data : Qui veut des données brutes ?" du 31 mars 2017 
+Outils et données pour la journée ["Open data : Qui veut des données brutes ?"](https://www.eventbrite.fr/e/billets-open-data-qui-veut-des-donnees-brutes-32057837856) du 31 mars 2017 
 
 
 
