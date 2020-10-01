@@ -6,7 +6,7 @@ library(tidyverse)
 
 
 ## résumé des visites pour l'ensemble d'un site, sur une période donnée
-visitsSummary <- function(idSite = 1, 
+visitsSummary <- function(idSite = 109, 
                           period = "day",
                           date = "last365",
                           url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -27,7 +27,7 @@ visitsSummary <- function(idSite = 1,
 ## segmentation 
 ## voir https://developer.piwik.org/api-reference/reporting-api-segmentation pour les segmentations possibles
 
-visitsSegmented <- function(idSite = 1,
+visitsSegmented <- function(idSite = 109,
                             period = "day",
                             date = "last365",
                             segment = "city==Marseille",
@@ -49,7 +49,7 @@ visitsSegmented <- function(idSite = 1,
 }
 
 
-getPageUrls <- function(idSite = 1,
+getPageUrls <- function(idSite = 109,
                         period = "day",
                         date = "last365",
                         url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -82,7 +82,7 @@ getPageUrls <- function(idSite = 1,
 ## focus sur les téléchargements
 ## attention difficile d'avoir plus d'une centaine de jours d'un coup, sinon l'API plante
 
-getDownloads <- function(idSite = 1,
+getDownloads <- function(idSite = 109,
                          period = "day",
                          date = "last100",
                          url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -113,7 +113,7 @@ getDownloads <- function(idSite = 1,
 ## liens sortants - dont téléchargements sur un autre site
 ## attention à ne pas requêter des périodes de temps trop importantes
 
-getOutlinks <- function(idSite = 1,
+getOutlinks <- function(idSite = 109,
                         period = "day",
                         date = "last30",
                         url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -140,7 +140,7 @@ getOutlinks <- function(idSite = 1,
 
 ## mots-clés de recherche
 
-getSiteSearchKeywords <- function(idSite = 1,
+getSiteSearchKeywords <- function(idSite = 109,
                                   period = "day",
                                   date = "last30",
                                   url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -170,7 +170,7 @@ getSiteSearchKeywords <- function(idSite = 1,
   
   ## mots-clés de recherche (referrers)
   
-getReferrersSearchKeywords <- function(idSite = 1,
+getReferrersSearchKeywords <- function(idSite = 109,
                                     period = "day",
                                     date = "last30",
                                     url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -195,7 +195,7 @@ getReferrersSearchKeywords <- function(idSite = 1,
 
 ## providers
 
-getProvider <- function(idSite = 1,
+getProvider <- function(idSite = 109,
                                        period = "day",
                                        date = "last30",
                                        url = "http://stats.data.gouv.fr/index.php?module=API") {
@@ -216,3 +216,6 @@ getProvider <- function(idSite = 1,
     mutate(date = lubridate::ymd(date))
 }
 
+get_df_id <- function(url) {
+  stringr::str_extract(url, "(?<=/fr/datasets/)[a-zA-Z0-9\\-]+(?=/)")
+}

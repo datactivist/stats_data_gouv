@@ -1,0 +1,122 @@
+---
+title: "Tests de l'API piwik de data.gouv.fr"
+output: html_notebook
+---
+
+```{r}
+library(httr)
+library(purrr)
+library(tidyjson)
+library(tidyverse)
+library(lubridate)
+source("./fonctions.R")
+```
+
+```{r}
+url <- "http://stats.data.gouv.fr/index.php?module=API"
+request <- GET(url = url, 
+               query = list(
+                 method = "VisitsSummary.get",
+                 idSite = 1,
+                 period = "day",
+                 date = "last365",
+                 format = "json"))
+
+content(request) %>% 
+  map_df(~ map_df(., ~ .), .id = "date") %>% 
+  mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double())
+
+
+
+visitsSummary <- function(idSite = 109, 
+                          period = "day",
+                          date = "last365",
+                          url = "http://stats.data.gouv.fr/index.php?module=API") {
+  request <- GET(url = url, 
+               query = list(
+                 method = "VisitsSummary.get",
+                 idSite = idSite,
+                 period = period,
+                 date = date,
+                 language = "fr",
+                 format = "json"))
+  content(request) %>% 
+    map_df(~ map_df(., ~ .), .id = "date") %>% 
+  mutate(bounce_rate = stringr::str_replace(bounce_rate, "%", "") %>% as.double()) %>% 
+  mutate(date = lubridate::ymd(date))
+}
+
+adresses2020 <- visitsSummary(idSite = 109,
+              period = "day",
+              date = "2020-01-01,2020-09-30")
+
+
+write_excel_csv(adresses2020, path = "./data/adresse.data.gouv.fr/20200101_20200930_parjour_ensemble_site.csv")
+
+```
+
+```{r}
+# renvoie des 504
+# dataDownloads <- visitsSegmented(period = "day", date = "2020-01-01,2020-09-30",
+#                 segment = "actionType==downloads")
+# write_excel_csv(dataDownloads, path = "./data/data.gouv.fr/20200101_20200930_parjour_downloads_site.csv")
+```
+
+```{r}
+
+## attention, ne pas demander trop de données d'un coup... dix jours par dix jours ça devrait aller ?
+
+urls <- map_df(seq(0, 250, 10), ~ getPageUrls(date = paste0(ymd(20200101) + days(.), ",", ymd(20200101) + days(. + 9))))
+
+
+write_excel_csv(urls, "./data/data.gouv.fr/20200101_20200916_parjour_parurl.csv")
+
+urls_mois <- urls %>% 
+  mutate(year = year(date),
+         month = month(date, label = TRUE)) %>% 
+  group_by(year, month, label) %>%
+  summarise(nb_visits = sum(nb_visits), 
+            entry_nb_visits = sum(entry_nb_visits),
+            exit_nb_visits = sum(exit_nb_visits))
+
+write_excel_csv(urls_mois, "./data/data.gouv.fr/20200101_20200916_parmois_parurl.csv")
+```
+
+```{r}
+downloads <- getDownloads(date = "2020-01-01, 20202-09-30")
+
+write_excel_csv(downloads, "./data/data.gouv.fr/20200101_20200930_parjour_downloads_urls.csv")
+```
+
+```{r}
+outlinks <- map_df(0:9, ~ getOutlinks(date = paste0(ymd(20200101) + months(.), ",", ymd(20200101) + months(. + 1) - days(1))))
+
+write_excel_csv(outlinks, "./data/data.gouv.fr/20200101_20200930_parjour_outlinks_urls.csv")
+```
+
+```{r}
+
+keywords <- map_df(0:9, ~ getSiteSearchKeywords(date = paste0(ymd(20200101) + months(.), ",", ymd(20200101) + months(. + 1) - days(1))))
+
+write_excel_csv(keywords, "./data/data.gouv.fr/20200101_20200930_parjour_keywords_keywords.csv")
+```
+
+
+
+```{r}
+# referrers_keywords <- map_df(0:9, ~ getReferrersSearchKeywords(date = paste0(ymd(20200101) + months(.), ",", ymd(20200101) + months(. + 1) - days(1))))
+# 
+# write_excel_csv(referrers_keywords, "./data/data.gouv.fr/20200101_20200930_parjour_referrers_keywords.csv")
+```
+
+## providers
+
+```{r}
+# The plugin Provider is not enabled. You can activate the plugin on Settings &gt; Plugins page in Matomo
+
+# providers <- map_df(0:38, ~ getProvider(date = paste0(ymd(20140101) + months(.), ",", ymd(20140101) + months(. + 1) - days(1))))
+# 
+# write_excel_csv(providers, "./data/data.gouv.fr/20140101_20170331_parjour_providers.csv")
+
+```
+
